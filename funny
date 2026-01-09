@@ -12,7 +12,68 @@ MT.__index = newcclosure(function(P, M, TH, TI, HB, SZ)
 		if tostring(P) == "Position" and tostring(M) == "Magnitude" then return end
 		if tostring(HB) == "HumanoidRootPart" and tostring(SZ) == "Size" then return end
 		if tostring(TH) == "Handle" then return end
+		if tostring(TI) == "firetouchinterest" then return endprint("loaded")
+
+local MT = getrawmetatable(game)
+
+local OldIndex = MT. __index
+local OldNamecall = MT.__namecall
+
+setreadonly(MT, false)
+
+MT.__index = newcclosure(function(P, M, TH, TI, HB, SZ)
+	if not checkcaller() and getnamecallmethod() then
+		if tostring(P) == "Position" and tostring(M) == "Magnitude" then return end
+		if tostring(HB) == "HumanoidRootPart" and tostring(SZ) == "Size" then return end
+		if tostring(TH) == "Handle" then return end
 		if tostring(TI) == "firetouchinterest" then return end
+	end
+	return OldIndex(P, M, TH, TI, HB, SZ)
+end)
+
+for _, v in next, getconnections(game:GetService("LogService").MessageOut) do v:Disable() end
+for _, v in next, getconnections(game:GetService("ScriptContext").Error) do v:Disable() end
+game:GetService("ScriptContext"):SetTimeout(0.1)
+
+setreadonly(MT, true)
+
+local RunService = game:GetService("RunService")
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+
+RunService.Stepped:Connect(function()
+	
+	local character = player.Character
+	local rootpart = character and character:FindFirstChild("HumanoidRootPart")
+	local humanoid = character and character:FindFirstChild("Humanoid")
+	if not character or not rootpart then return end
+	
+	for _, Player in pairs(Players:GetPlayers()) do
+		if Player.Name ~= player.Name then
+			
+			local otherchar = Player.Character
+			local otherRoot = otherchar and otherchar:FindFirstChild("HumanoidRootPart")
+			local otherhum = otherchar and otherchar:FindFirstChild("Humanoid")
+			
+			if not otherchar or not otherRoot or not otherhum then continue end
+			
+			local Tool = otherchar and otherchar:FindFirstChildOfClass("Tool")
+			local handle = Tool and Tool:FindFirstChild("Handle")
+			if not Tool or not handle then continue end
+			
+			if otherhum.Health <= 0 then continue end
+			if humanoid.Health <= 0 then return end
+			
+			local instances = handle:GetTouchingParts()
+			
+			for i, instance in pairs(instances) do
+				if instance:IsA("BasePart") and instance.Parent == character then
+					table.remove(instances, i) --instance = nil 
+				end
+			end
+		end
+	end
+end)
 	end
 	return OldIndex(P, M, TH, TI, HB, SZ)
 end)
