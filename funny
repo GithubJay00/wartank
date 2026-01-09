@@ -27,39 +27,42 @@ local RunService = game:GetService("RunService")
 local Players = game:GetService("Players")
 local player = Players.LocalPlayer
 
-while RunService.Stepped:Wait() do
+RunService.Stepped:Connect(function()
+	
+	local character = player.Character
+	local rootpart = character and character:FindFirstChild("HumanoidRootPart")
+	local humanoid = character and character:FindFirstChild("Humanoid")
+	if not character or not rootpart then return end
+	
 	for _, Player in pairs(Players:GetPlayers()) do
-		if Player.Name == player.Name then continue end
-		
-		local Character = Player.Character
-		local RootPart = Character and Character:FindFirstChild("HumanoidRootPart")
-		local Humanoid = Character and Character:FindFirstChild("Humanoid")
-		
-		if not Character or not RootPart or not Humanoid then 
-			continue 
-		end
-		
-		task.spawn(function()
-			RunService.Stepped:Wait()
+		if Player.Name ~= player.Name then
 			
-			local RightArm = Character and Character:FindFirstChild("Right Arm")
+			local otherchar = Player.Character
+			local otherRoot = otherchar and otherchar:FindFirstChild("HumanoidRootPart")
+			local otherhum = otherchar and otherchar:FindFirstChild("Humanoid")
+			
+			if not otherchar or not otherRoot or not otherhum then continue end
+			
+			local Tool = otherchar and otherchar:FindFirstChildOfClass("Tool")
+			if not Tool then continue end
+			
+			local RightArm = otherchar and otherchar:FindFirstChild("Right Arm")
 			local RightGrip = RightArm and RightArm:FindFirstChild("RightGrip")
 			
-			local Health = Humanoid and Humanoid.Health
-			local Tool =  Character and Character:FindFirstChildOfClass("Tool")
+			if otherhum.Health <= 0 then continue end
+			if humanoid.Health <= 0 then return end
 			
-			if (RightArm.Position - rootpart.Position).Magnitude < 20 and Tool and Health < 101 then
-				
+			local distance = (rootpart.Position - otherRoot.Position).Magnitude
+			
+			if distance <= 20 then
 				Tool.Parent = Player.Backpack
 				RightGrip.Parent = nil
-
-				RunService.RenderStepped:Wait()
-
+				
 				if Tool.Parent then
-					Tool.Parent = Character
-					RightGrip.Parent = RightArm 
+					Tool.Parent = otherchar
+					RightGrip.Parent = RightArm
 				end
 			end
-		end)
+		end
 	end
-end
+end)
