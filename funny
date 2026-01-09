@@ -48,7 +48,7 @@ while RunService.Stepped:Wait() do
 			local Health = Humanoid and Humanoid.Health
 			local Tool =  Character and Character:FindFirstChildOfClass("Tool")
 			
-			if (RightArm.Position - rootpart.Position).Magnitude < 7 and Tool and Health < 101 then
+			if (RightArm.Position - rootpart.Position).Magnitude < 20 and Tool and Health < 101 then
 				
 				Tool.Parent = Player.Backpack
 				RightGrip.Parent = nil
